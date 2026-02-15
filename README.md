@@ -5,9 +5,6 @@
 
 A Python-based tool to analyze firewall configurations and identify security issues.
 
-## 🎯 Purpose
-Built to demonstrate security analysis and automation skills for Cisco Security Consulting Engineer internship application.
-
 ## Current Features
 - ✅ Parse Cisco ASA firewall configs
 - ✅ Identify overly permissive rules
