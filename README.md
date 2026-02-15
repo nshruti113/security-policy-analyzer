@@ -1,6 +1,12 @@
-# Security Policy Automation Framework
+# 🔒 Security Policy Automation Framework
+
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A Python-based tool to analyze firewall configurations and identify security issues.
+
+## 🎯 Purpose
+Built to demonstrate security analysis and automation skills for Cisco Security Consulting Engineer internship application.
 
 ## Current Features
 - ✅ Parse Cisco ASA firewall configs
