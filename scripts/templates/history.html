@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History{% endblock %}
+
+{% block content %}
+<h2 style="color: #333; margin-bottom: 30px;">📜 Analysis History</h2>
+
+{% if reports %}
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+            <th style="padding: 15px; text-align: left;">Report</th>
+            <th style="padding: 15px; text-align: left;">Date</th>
+            <th style="padding: 15px; text-align: left;">Size</th>
+            <th style="padding: 15px; text-align: left;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr style="border-bottom: 1px solid #dee2e6;">
+            <td style="padding: 15px;">{{ report.filename }}</td>
+            <td style="padding: 15px;">{{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td style="padding: 15px;">{{ "%.2f"|format(report.size / 1024) }} KB</td>
+            <td style="padding: 15px;">
+                <a href="/download/{{ report.filename }}" style="color: #667eea; text-decoration: none;">Download</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="text-align: center; color: #666; padding: 40px;">No analysis history yet. Start by analyzing a configuration!</p>
+{% endif %}
+{% endblock %}

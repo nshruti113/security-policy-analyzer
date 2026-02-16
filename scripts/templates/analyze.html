@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-section {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .upload-box {
+        border: 3px dashed #667eea;
+        border-radius: 12px;
+        padding: 60px 40px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .upload-box:hover {
+        border-color: #764ba2;
+        background: #fff;
+        transform: scale(1.02);
+    }
+    
+    .upload-box.dragover {
+        background: #e7f3ff;
+        border-color: #0066cc;
+    }
+    
+    .upload-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        color: #667eea;
+    }
+    
+    .upload-box h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+    
+    .upload-box p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    
+    .upload-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: transform 0.3s;
+    }
+    
+    .upload-button:hover {
+        transform: scale(1.05);
+    }
+    
+    .selected-file {
+        margin-top: 20px;
+        padding: 15px;
+        background: #d4edda;
+        border-radius: 8px;
+        color: #155724;
+        display: none;
+    }
+    
+    .format-options {
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .format-options label {
+        display: inline-block;
+        margin: 0 10px;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .format-options input[type="radio"] {
+        margin-right: 5px;
+    }
+    
+    .analyze-button {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px 50px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: all 0.3s;
+        display: none;
+    }
+    
+    .analyze-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+    }
+    
+    .analyze-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    
+    .spinner {
+        display: none;
+        margin: 20px auto;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .example-section {
+        margin-top: 60px;
+        padding-top: 40px;
+        border-top: 2px solid #e9ecef;
+    }
+    
+    .example-section h3 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .example-section pre {
+        background: #263238;
+        color: #aed581;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-section">
+    <h2 style="text-align: center; color: #333; margin-bottom: 30px;">Upload Firewall Configuration</h2>
+    
+    <form id="uploadForm" method="POST" enctype="multipart/form-data">
+        <div class="upload-box" id="uploadBox">
+            <div class="upload-icon">📁</div>
+            <h3>Drop your config file here</h3>
+            <p>or click to browse</p>
+            <input type="file" name="config_file" id="fileInput" class="file-input" accept=".txt,.conf" required>
+            <button type="button" class="upload-button" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+        
+        <div class="selected-file" id="selectedFile">
+            ✓ Selected: <span id="fileName"></span>
+        </div>
+        
+        <div class="format-options">
+            <p style="margin-bottom: 15px; color: #333; font-weight: 600;">Report Format:</p>
+            <label>
+                <input type="radio" name="format" value="all" checked> All Formats
+            </label>
+            <label>
+                <input type="radio" name="format" value="html"> HTML Only
+            </label>
+            <label>
+                <input type="radio" name="format" value="json"> JSON Only
+            </label>
+            <label>
+                <input type="radio" name="format" value="excel"> Excel Only
+            </label>
+        </div>
+        
+        <div style="text-align: center;">
+            <button type="submit" class="analyze-button" id="analyzeButton">
+                🔍 Analyze Configuration
+            </button>
+        </div>
+        
+        <div class="spinner" id="spinner"></div>
+    </form>
+</div>
+
+<div class="example-section">
+    <h3>Example Configuration Format</h3>
+    <p style="color: #666; margin-bottom: 15px;">Your firewall configuration should contain ACL entries like:</p>
+    <pre>access-list OUTSIDE_IN extended permit tcp any host 192.168.1.10 eq 80
+access-list OUTSIDE_IN extended permit tcp any host 192.168.1.10 eq 443
+access-list OUTSIDE_IN extended permit tcp any any eq 22
+access-list INSIDE_OUT extended permit ip 192.168.1.0 255.255.255.0 any</pre>
+</div>
+
+<script>
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const selectedFile = document.getElementById('selectedFile');
+    const fileName = document.getElementById('fileName');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const uploadForm = document.getElementById('uploadForm');
+    const spinner = document.getElementById('spinner');
+    
+    // Click to upload
+    uploadBox.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File selection
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            fileName.textContent = e.target.files[0].name;
+            selectedFile.style.display = 'block';
+            analyzeButton.style.display = 'inline-block';
+        }
+    });
+    
+    // Drag and drop
+    uploadBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadBox.classList.add('dragover');
+    });
+    
+    uploadBox.addEventListener('dragleave', () => {
+        uploadBox.classList.remove('dragover');
+    });
+    
+    uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadBox.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileName.textContent = files[0].name;
+            selectedFile.style.display = 'block';
+            analyzeButton.style.display = 'inline-block';
+        }
+    });
+    
+    // Form submission
+    uploadForm.addEventListener('submit', (e) => {
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = 'Analyzing...';
+        spinner.style.display = 'block';
+    });
+</script>
+{% endblock %}
